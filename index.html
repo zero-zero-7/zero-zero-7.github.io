@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2603_96953129 的博客</title>
+<meta name="description" content="2603_96953129 的个人博客主页 — 记录 Python 编程入门的学习进度。">
+<style>
+/* ==========================================================================
+   2603_96953129 — 个人博客主页
+   安静极简 / 零依赖 / 双主题
+   设计规范见 DESIGN.md
+   ========================================================================== */
+
+/* ---------- 1. 设计变量 ---------- */
+:root {
+  --bg: #FAFAF8;
+  --surface: #FFFFFF;
+  --surface-2: #F4F4F1;
+
+  --ink: #1C1C1A;
+  --ink-2: #4A4A46;
+  --muted: #8C8C85;
+  --line: #E7E7E1;
+
+  --accent: #35668F;
+  --accent-soft: #EAF0F6;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC",
+    "Noto Sans CJK SC", sans-serif;
+  --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  --container: 1120px;
+  --radius: 8px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  --bg: #14151A;
+  --surface: #1B1D23;
+  --surface-2: #22242B;
+
+  --ink: #EDEDEA;
+  --ink-2: #B9BAB4;
+  --muted: #8A8C94;
+  --line: #34373F;
+
+  --accent: #7FA6C8;
+  --accent-soft: #223040;
+}
+
+/* ---------- 2. 基础重置 ---------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+h1, h2, h3 { margin: 0; font-weight: 600; }
+p { margin: 0; }
+ul, ol, dl, dd { margin: 0; padding: 0; list-style: none; }
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.18s var(--ease);
+}
+
+button { font: inherit; color: inherit; }
+
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- 3. 顶栏 ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg); /* 不支持 color-mix 时的回退 */
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar__inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+.icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.icon-btn svg { width: 15px; height: 15px; display: block; }
+
+.icon-btn .icon-moon { display: none; }
+[data-theme="dark"] .icon-btn .icon-sun { display: none; }
+[data-theme="dark"] .icon-btn .icon-moon { display: block; }
+
+/* ---------- 4. 布局 ---------- */
+.layout {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 56px 32px 96px;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 64px;
+  align-items: start;
+}
+
+/* ---------- 5. 侧栏 ---------- */
+/* 侧栏内容较高（约 1000px），若使用 sticky 会在滚动时被顶栏遮住头像，
+   因此保持常规文档流，随页面自然滚动。 */
+.sidebar {
+  display: grid;
+  gap: 32px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+
+.profile__id {
+  font-size: 28px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  word-break: break-all;
+}
+
+.profile__meta {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.profile__bio {
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--ink-2);
+  max-width: 30ch;
+}
+
+.profile__tags {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-block;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 26px;
+  white-space: nowrap;
+}
+
+/* 统计网格 */
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 16px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.stat__value {
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.stat__label {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* 侧栏分组面板 */
+.panel { padding-top: 24px; border-top: 1px solid var(--line); }
+
+.panel__title {
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.rows { margin-top: 14px; display: grid; gap: 10px; }
+
+.rows li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.rows li b {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* 原力条 */
+.force { margin-top: 14px; }
+.force .rows { margin-top: 0; margin-bottom: 12px; }
+
+.force__bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent-soft);
+  overflow: hidden;
+}
+
+.force__bar i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.force__note {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ---------- 6. 主栏 ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chips { display: flex; gap: 8px; }
+
+.chip {
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.18s var(--ease), color 0.18s var(--ease),
+    border-color 0.18s var(--ease);
+}
+
+.chip:hover { border-color: var(--muted); color: var(--ink); }
+
+.chip[aria-selected="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.search {
+  flex: 1 1 220px;
+  max-width: 300px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-family: inherit;
+  transition: border-color 0.18s var(--ease);
+}
+
+.search::placeholder { color: var(--muted); }
+.search:focus { outline: none; border-color: var(--accent); }
+
+.count {
+  margin-top: 16px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* 文章列表 */
+.articles { margin-top: 4px; }
+
+.article { border-bottom: 1px solid var(--line); }
+
+/* 整行可点击：锚点铺满整个列表行（内边距也归属锚点），
+   点击行内任意位置都会跳转原文 */
+.article__link {
+  display: block;
+  padding: 22px 12px 22px 0;
+  color: var(--ink);
+  transition: background-color 0.18s var(--ease), padding-left 0.18s var(--ease);
+}
+
+.article__link:hover {
+  background: var(--surface-2);
+  padding-left: 10px;
+}
+
+.article__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.article__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+
+.article__link:hover .article__title { color: var(--accent); }
+
+.article__summary {
+  margin-top: 8px;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.75;
+  max-width: 68ch;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.article__meta {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.article__meta .dot { color: var(--line); }
+
+.tag--inline {
+  height: 20px;
+  padding: 0 7px;
+  font-size: 11px;
+  line-height: 20px;
+  font-family: var(--font-sans);
+}
+
+.empty {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+/* 页脚 */
+.foot {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ---------- 7. 响应式 ---------- */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding: 36px 24px 72px;
+  }
+  .sidebar { gap: 28px; }
+  .topbar__inner { padding: 0 24px; }
+  .profile__bio { max-width: none; }
+  .article__title { font-size: 17px; }
+}
+
+@media (max-width: 640px) {
+  .stats { grid-template-columns: 1fr 1fr; }
+  .search { max-width: none; }
+  .profile__id { font-size: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="./index.html">2603_96953129</a>
+    <button class="icon-btn" id="themeToggle" type="button" aria-label="切换深浅主题" title="切换深浅主题">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ============ 左侧：个人信息 ============ -->
+  <aside class="sidebar">
+
+    <div class="profile">
+      <div class="avatar" aria-hidden="true">2</div>
+      <h1 class="profile__id">2603_96953129</h1>
+      <p class="profile__meta">IP 属地：重庆市 · 码龄 40 天 · 加入 2026-09-10</p>
+      <p class="profile__bio">正在学习 Python，用博客记录从环境搭建到循环、容器类型的入门进度。</p>
+      <div class="profile__tags">
+        <span class="tag">Python</span>
+        <span class="tag">编程入门</span>
+        <span class="tag">学习笔记</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <p class="stat__value num">663</p>
+        <p class="stat__label">总访问量</p>
+      </div>
+      <div class="stat">
+        <p class="stat__value num">5</p>
+        <p class="stat__label">原创</p>
+      </div>
+      <div class="stat">
+        <p class="stat__value num">0</p>
+        <p class="stat__label">粉丝</p>
+      </div>
+      <div class="stat">
+        <p class="stat__value num">4</p>
+        <p class="stat__label">关注</p>
+      </div>
+    </div>
+
+    <section class="panel">
+      <h2 class="panel__title">个人成就</h2>
+      <ul class="rows">
+        <li><span>获得点赞</span><b>5</b></li>
+        <li><span>内容获得评论</span><b>1</b></li>
+        <li><span>获得收藏</span><b>14</b></li>
+        <li><span>博客总排名</span><b>80,855</b></li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel__title">原力</h2>
+      <div class="force">
+        <ul class="rows">
+          <li><span>原力等级</span><b>1</b></li>
+          <li><span>原力分</span><b>30</b></li>
+        </ul>
+        <div class="force__bar" role="img" aria-label="原力分 30 分，满分 100 分">
+          <i style="width:30%"></i>
+        </div>
+        <p class="force__note">本月获得 20 原力分</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel__title">账号信息</h2>
+      <ul class="rows">
+        <li><span>加入 CSDN</span><b>2026-09-10</b></li>
+        <li><span>码龄</span><b>40 天</b></li>
+        <li><span>创作历程</span><b>2026 年 · 5 篇</b></li>
+      </ul>
+    </section>
+
+  </aside>
+
+  <!-- ============ 右侧：文章列表 ============ -->
+  <main class="main">
+
+    <div class="toolbar">
+      <div class="chips" role="tablist" aria-label="文章排序">
+        <button class="chip" type="button" role="tab" data-sort="all"  aria-selected="true">全部</button>
+        <button class="chip" type="button" role="tab" data-sort="new"  aria-selected="false">最新</button>
+        <button class="chip" type="button" role="tab" data-sort="hot"  aria-selected="false">最热</button>
+      </div>
+      <input class="search" id="search" type="search" placeholder="搜索标题或摘要…" aria-label="搜索文章">
+    </div>
+
+    <p class="count" id="count"></p>
+
+    <ul class="articles" id="list"></ul>
+    <p class="empty" id="empty" hidden>没有匹配的文章，换个关键词试试。</p>
+
+    <footer class="foot">
+      数据抓取自 <a href="https://blog.csdn.net/2603_96953129?type=blog" target="_blank" rel="noopener">blog.csdn.net/2603_96953129</a> · 更新时间 2026-10-20
+    </footer>
+
+  </main>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------------
+   真实数据 — 抓取自 https://blog.csdn.net/2603_96953129?type=blog (2026-10-20)
+   摘要为原文节选，未做改写。
+--------------------------------------------------------------------------- */
+const ARTICLES = [
+  {
+    title: "python编程入门进度4.0",
+    url: "https://blog.csdn.net/2603_96953129/article/details/168345611",
+    date: "2026-10-18",
+    dateLabel: "前天 22:30",
+    read: 187, like: 0, comment: 0, fav: 3,
+    summary: "对于一个我们创建的文件的地址分为绝对路径和相对路径，绝对路径是从根目录开始的完整路径，例如（创建在电脑硬盘里的这个位置C:\\Users\\Tom\\data\\file.txt）相对路径是相对于当前工作目录的路径…"
+  },
+  {
+    title: "python编程入门进度3.0",
+    url: "https://blog.csdn.net/2603_96953129/article/details/167587342",
+    date: "2026-10-11",
+    dateLabel: "2026.10.11",
+    read: 144, like: 1, comment: 0, fav: 4,
+    summary: "(目标转字典={k:i+1 for i,k in enumerate(目标)})（字典转其他【目标类型】“list”(dict.keys())只要键，键同理；字典通常用{}来表示，里面的元素是两两一对的，分为key和value（键值对）…"
+  },
+  {
+    title: "python编程入门进度2.0",
+    url: "https://blog.csdn.net/2603_96953129/article/details/166581500",
+    date: "2026-09-25",
+    dateLabel: "2026.09.25",
+    read: 214, like: 1, comment: 0, fav: 3,
+    summary: "循环分为for循环和while循环{for循环[for x（元素） in 对象：底下插入循环的调教语句（if 条件：）不得不介绍两个关键语句break和continue，都是在执行该小循环侯执行的…"
+  },
+  {
+    title: "python编程语言入门",
+    url: "https://blog.csdn.net/2603_96953129/article/details/166015653",
+    date: "2026-09-20",
+    dateLabel: "2026.09.20",
+    read: 34, like: 0, comment: 0, fav: 1,
+    summary: "运算符与表达式：运算符{正常的（+）加、（-）减、（*）乘、（/）除、（//）求整商、（%）求整余、（**）幂运算}在除运算时结果是会有小数的（前提输入的都是整数）。数据类型：int（）整型…"
+  },
+  {
+    title: "python学习分享",
+    url: "https://blog.csdn.net/2603_96953129/article/details/165244142",
+    date: "2026-09-13",
+    dateLabel: "2026.09.13",
+    read: 84, like: 3, comment: 1, fav: 3,
+    summary: "这个是python的官网，进去后点Downloads，选择自己的使用设备，博主本人是电脑上用的所以选Windows，这边版本推荐3.12及以下的，默认选64-bit（即第一个）。版本太新容易出问题…"
+  }
+];
+
+/* ---------- DOM ---------- */
+const listEl   = document.getElementById("list");
+const countEl  = document.getElementById("count");
+const emptyEl  = document.getElementById("empty");
+const searchEl = document.getElementById("search");
+const chips    = Array.from(document.querySelectorAll(".chip"));
+const themeBtn = document.getElementById("themeToggle");
+
+let sortMode = "all";
+let keyword  = "";
+
+/* ---------- 渲染 ---------- */
+function currentList() {
+  const kw = keyword.trim().toLowerCase();
+
+  let rows = ARTICLES.filter(function (a) {
+    if (!kw) return true;
+    return (a.title + " " + a.summary).toLowerCase().indexOf(kw) !== -1;
+  });
+
+  if (sortMode === "new") {
+    rows = rows.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+  } else if (sortMode === "hot") {
+    rows = rows.slice().sort(function (a, b) { return b.read - a.read; });
+  }
+  return rows;
+}
+
+function render() {
+  const rows = currentList();
+
+  listEl.innerHTML = rows.map(function (a) {
+    return '<li class="article">' +
+      '<a class="article__link" href="' + a.url + '" target="_blank" rel="noopener">' +
+        '<h3 class="article__title">' +
+          '<span class="tag tag--inline">原创</span>' +
+          '<span class="article__name">' + a.title + '</span>' +
+        '</h3>' +
+        '<p class="article__summary">' + a.summary + '</p>' +
+        '<p class="article__meta">' +
+          '<span>' + a.dateLabel + '</span>' +
+          '<span class="dot">·</span><span>' + a.read + ' 阅读</span>' +
+          '<span class="dot">·</span><span>' + a.like + ' 点赞</span>' +
+          '<span class="dot">·</span><span>' + a.comment + ' 评论</span>' +
+          '<span class="dot">·</span><span>' + a.fav + ' 收藏</span>' +
+        '</p>' +
+      '</a>' +
+    '</li>';
+  }).join("");
+
+  emptyEl.hidden = rows.length > 0;
+  countEl.textContent = "当前显示 " + rows.length + " 篇 / 共 " + ARTICLES.length + " 篇";
+}
+
+/* ---------- 排序 chips ---------- */
+chips.forEach(function (chip) {
+  chip.addEventListener("click", function () {
+    sortMode = chip.dataset.sort;
+    chips.forEach(function (c) {
+      c.setAttribute("aria-selected", String(c === chip));
+    });
+    render();
+  });
+});
+
+/* ---------- 搜索（300ms 去抖） ---------- */
+let timer = null;
+searchEl.addEventListener("input", function () {
+  clearTimeout(timer);
+  timer = setTimeout(function () {
+    keyword = searchEl.value;
+    render();
+  }, 300);
+});
+
+/* ---------- 主题切换 ---------- */
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+}
+
+themeBtn.addEventListener("click", function () {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  applyTheme(next);
+  try { localStorage.setItem("blog-theme", next); } catch (e) { /* file:// 下可能被禁用 */ }
+});
+
+try {
+  const saved = localStorage.getItem("blog-theme");
+  if (saved === "dark" || saved === "light") applyTheme(saved);
+} catch (e) { /* 忽略 */ }
+
+render();
+</script>
+</body>
+</html>
